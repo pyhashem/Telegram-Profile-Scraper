@@ -1,0 +1,4 @@
+telethon>=1.36.0
+loguru>=0.7.0
+python-socks[asyncio]>=2.0.0
+pysocks>=1.7.0

@@ -1,0 +1,9 @@
+{
+  "proxy": {
+    "type": "socks5",
+    "host": "1.2.3.4",
+    "port": 1080,
+    "username": "user",
+    "password": "pass"
+  }
+}
