@@ -107,12 +107,29 @@ async def scrape_from_messages(
     seen_ids: set[int] = set()
     profiles: list[UserProfile] = []
 
+    # Pre-fetch participants to populate entity cache
+    try:
+        participants = await client.get_participants(entity)
+        logger.info(f"Pre-loaded {len(participants)} participants into cache")
+    except Exception as e:
+        logger.debug(f"Could not pre-load participants: {e}")
+
     logger.info(f"Scanning messages in {group} (limit={limit})")
     async for message in client.iter_messages(entity, limit=limit):
         if message.sender_id and message.sender_id not in seen_ids:
             seen_ids.add(message.sender_id)
             try:
-                user = await message.get_sender()
+                user = None
+                try:
+                    user = await message.get_sender()
+                except (ValueError, TypeError):
+                    pass
+                if user is None:
+                    try:
+                        from telethon.tl.types import PeerUser
+                        user = await client.get_entity(PeerUser(message.sender_id))
+                    except Exception:
+                        pass
                 if user is None or not isinstance(user, User) or user.bot:
                     continue
                 profile = await _get_user_profile(client, user, photos_dir)
